@@ -11,6 +11,10 @@ router.get('/profile',isLoggedIn, function(req, res, next) {
   res.render('profile', {user: req.user});
 });
 
+router.get('/gitprofile',isLoggedIn, function(req, res, next) {
+  res.render('gitprofile', {user: req.user});
+});
+
 router.get('/logout', function(req, res, next) {
   req.logout();
   res.redirect('/');
@@ -22,6 +26,16 @@ router.get('/facebook/auth', passport.authenticate('facebook'));
 router.get('/facebook/auth/redirect',
   passport.authenticate('facebook', {
     successRedirect : '/profile',
+    failureRedirect : '/'
+  })
+);
+
+router.get('/github/auth', passport.authenticate('github'));
+
+// the callback after google has authenticated the user
+router.get('/github/auth/redirect',
+  passport.authenticate('github', {
+    successRedirect : '/gitprofile',
     failureRedirect : '/'
   })
 );

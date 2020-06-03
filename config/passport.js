@@ -1,4 +1,5 @@
 const FacebookStrategy = require('passport-facebook').Strategy;
+const GitHubStrategy = require('passport-github').Strategy;
 
 var User = require('../models/user');
 
@@ -39,6 +40,41 @@ function callback(token, refreshToken, profile, done) {
 
 }
 
+const githubOptions = {
+    clientID        : authConfig.githubAuth.clientId,
+    clientSecret    : authConfig.githubAuth.clientSecret,
+    callbackURL     : authConfig.githubAuth.callBackUrl
+};
+
+function githubcallback(token, refreshToken, profile, done) {
+    //  console.log(profile); id displayName username
+        process.nextTick( ()=> {
+            const {id, username, displayName } = profile;
+            User.findOne({'github.id': id}, (err,user)=> {
+                if(err)
+                    return done(err,false);
+                if(user){
+                    return done(null, user);
+                }
+                else{
+                    // return done(null, false);
+                    var newUser = new User();
+                    newUser.github.id = id;
+                    newUser.github.username = username;
+                    newUser.github.name = displayName;
+                    
+                    newUser.save( (err)=> {
+                        if(err)
+                            throw err;
+                        return done(null, newUser);
+                    });
+                }
+            });
+        });
+    
+    }
+    
+
 module.exports = function(passport){
 
     // used to serialize the user for the session
@@ -53,6 +89,8 @@ module.exports = function(passport){
         });
     });
 
-    passport.use(new FacebookStrategy(options, callback));
+    passport.use('facebook',new FacebookStrategy(options, callback));
+
+    passport.use('github',new GitHubStrategy(githubOptions, githubcallback));
 
 };
